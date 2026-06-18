@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: ai-study-buddy-backend
+    env: node
+    repo: https://github.com/Arvind-Singh00/SmartPrep_AI
+    branch: main
+    plan: free
+    buildCommand: npm install --prefix backend
+    startCommand: npm start --prefix backend
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Add other env vars in the Render dashboard (do not commit secrets)
