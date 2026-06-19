@@ -154,7 +154,7 @@ const chatService = {
   /**
    * Rename a chat session.
    */
-  async updateChat(chatId, ownerId, title) {
+  async updateChat(chatId, ownerId, { title }) {
     const chat = await Chat.findOneAndUpdate(
       { _id: chatId, ownerId },
       { $set: { title } },

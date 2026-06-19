@@ -21,8 +21,8 @@ const register = catchAsync(async (req, res) => {
   res.cookie('refreshToken', result.refreshToken, {
     httpOnly: true,
     secure: config.env === 'production',
-    sameSite: 'strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    sameSite: config.env === 'production' ? 'strict' : 'lax',
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
 
   successResponse(res, { user: result.user, accessToken: result.accessToken }, 201);
@@ -40,8 +40,26 @@ const login = catchAsync(async (req, res) => {
   res.cookie('refreshToken', result.refreshToken, {
     httpOnly: true,
     secure: config.env === 'production',
-    sameSite: 'strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    sameSite: config.env === 'production' ? 'strict' : 'lax',
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+  });
+
+  successResponse(res, { user: result.user, accessToken: result.accessToken });
+});
+
+/**
+ * Issues a new access token using the refresh token stored in the HttpOnly cookie.
+ * @type {import('express').RequestHandler}
+ */
+const refresh = catchAsync(async (req, res) => {
+  const token = req.cookies?.refreshToken;
+  const result = await authService.refreshToken(token);
+
+  res.cookie('refreshToken', result.refreshToken, {
+    httpOnly: true,
+    secure: config.env === 'production',
+    sameSite: config.env === 'production' ? 'strict' : 'lax',
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
 
   successResponse(res, { user: result.user, accessToken: result.accessToken });
@@ -89,4 +107,4 @@ const deleteAccount = catchAsync(async (req, res) => {
   successResponse(res, { message: 'Account deleted successfully.' });
 });
 
-export { register, login, getMe, logout, updateProfile, changePassword, deleteAccount };
+export { register, login, refresh, getMe, logout, updateProfile, changePassword, deleteAccount };

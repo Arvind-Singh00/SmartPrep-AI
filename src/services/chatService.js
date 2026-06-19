@@ -28,18 +28,20 @@ const chatService = {
 
   sendMessage: ({ chatId, text, noteIds }) => {
     const isReal = typeof import.meta !== 'undefined' && import.meta.env.VITE_USE_MOCK === 'false'
+    // Filter out any null/undefined values from noteIds
+    const cleanNoteIds = (noteIds || []).filter(Boolean)
     return adapter.post(
       () => {
         const randomResponse = MOCK_AI_RESPONSES[Math.floor(Math.random() * MOCK_AI_RESPONSES.length)]
         return {
           reply: randomResponse,
-          citations: noteIds?.length
-            ? [{ noteId: noteIds[0], noteTitle: 'Your Note', pageRef: null }]
+          citations: cleanNoteIds?.length
+            ? [{ noteId: cleanNoteIds[0], noteTitle: 'Your Note', pageRef: null }]
             : [],
         }
       },
       isReal ? '/chat/ask' : `/chats/${chatId}/messages`,
-      isReal ? { query: text, chatId, noteIds } : { text, noteIds },
+      isReal ? { query: text, chatId, noteIds: cleanNoteIds } : { text, noteIds: cleanNoteIds },
       1200
     ).then(res => {
       if (isReal && res.message && res.message.aiMessage) {

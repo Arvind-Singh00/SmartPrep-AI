@@ -62,6 +62,15 @@ const authService = {
       },
       '/auth/me',
       300
+    ).then(res => res.user ? res : { user: res })
+  },
+
+  refreshSession: () => {
+    return adapter.post(
+      () => ({ user: mockUsers[0], token: 'mock-jwt-token-refreshed' }),
+      '/auth/refresh',
+      {},
+      300
     )
   },
 

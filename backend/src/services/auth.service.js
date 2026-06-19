@@ -110,6 +110,41 @@ const authService = {
   },
 
   /**
+   * Issue a new access token from a valid refresh token.
+   * @param {string} refreshToken - The refresh token from the cookie.
+   * @returns {Promise<{ user: object, accessToken: string, refreshToken: string }>}
+   * @throws {UnauthorizedError} If the refresh token is missing, expired, or invalid.
+   */
+  async refreshToken(refreshToken) {
+    if (!refreshToken) {
+      throw new UnauthorizedError('No refresh token provided. Please log in.');
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(refreshToken, config.jwt.refreshSecret);
+    } catch (err) {
+      if (err.name === 'TokenExpiredError') {
+        throw new UnauthorizedError('Refresh token expired. Please log in again.');
+      }
+      throw new UnauthorizedError('Invalid refresh token. Please log in again.');
+    }
+
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      throw new UnauthorizedError('User no longer exists.');
+    }
+
+    const { accessToken, refreshToken: newRefreshToken } = generateTokenPair(user._id);
+
+    return {
+      user: sanitiseUser(user),
+      accessToken,
+      refreshToken: newRefreshToken,
+    };
+  },
+
+  /**
    * Retrieve the currently authenticated user's profile.
    * @param {string} userId - The authenticated user's ID.
    * @returns {Promise<object>} The user document (without passwordHash).

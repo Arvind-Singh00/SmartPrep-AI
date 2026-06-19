@@ -34,7 +34,7 @@ const createAuthSlice = (set, get) => ({
     try {
       const { user, accessToken } = await authService.signup({ name, email, password })
       localStorage.setItem('study_buddy_token', accessToken)
-      set({ user, token: accessToken, isAuthenticated: true, isLoading: false })
+      set({ user, token: accessToken, isAuthenticated: true, isAuthLoading: false })
     } catch (err) {
       let msg = 'Signup failed. Please try again.'
       if (err.response?.data?.error) {
@@ -43,7 +43,7 @@ const createAuthSlice = (set, get) => ({
       } else if (err.message === 'EMAIL_EXISTS') {
         msg = 'An account with this email already exists.'
       }
-      set({ error: msg, isLoading: false })
+      set({ authError: msg, isAuthLoading: false })
       throw err
     }
   },
@@ -55,51 +55,66 @@ const createAuthSlice = (set, get) => ({
   },
 
   loadSession: async () => {
-    const token = localStorage.getItem('study_buddy_token') || sessionStorage.getItem('study_buddy_token')
-    if (!token) { set({ isAuthLoading: false }); return }
     set({ isAuthLoading: true })
+    const token = localStorage.getItem('study_buddy_token') || sessionStorage.getItem('study_buddy_token')
+
+    if (token) {
+      // Try using existing access token
+      try {
+        const { user } = await authService.validateToken(token)
+        set({ user, token, isAuthenticated: true, isAuthLoading: false })
+        return
+      } catch {
+        // Access token invalid/expired — fall through to refresh
+        localStorage.removeItem('study_buddy_token')
+        sessionStorage.removeItem('study_buddy_token')
+      }
+    }
+
+    // No valid access token — try to get a new one via refresh cookie
     try {
-      const { user } = await authService.validateToken(token)
-      set({ user, token, isAuthenticated: true, isAuthLoading: false })
+      const { user, accessToken } = await authService.refreshSession()
+      // Store as session (non-persistent) by default after refresh
+      sessionStorage.setItem('study_buddy_token', accessToken)
+      set({ user, token: accessToken, isAuthenticated: true, isAuthLoading: false })
     } catch {
-      localStorage.removeItem('study_buddy_token')
-      sessionStorage.removeItem('study_buddy_token')
+      // No valid refresh token either — user must log in
       set({ isAuthLoading: false })
     }
   },
 
   updateProfile: async (data) => {
-    set({ isLoading: true, error: null })
+    set({ isAuthLoading: true, authError: null })
     try {
       const { user } = await authService.updateProfile(data)
-      set({ user, isLoading: false })
+      set({ user, isAuthLoading: false })
     } catch {
-      set({ error: 'Failed to update profile.', isLoading: false })
+      set({ authError: 'Failed to update profile.', isAuthLoading: false })
       throw new Error('Failed to update profile')
     }
   },
 
   changePassword: async (currentPassword, newPassword) => {
-    set({ isLoading: true, error: null })
+    set({ isAuthLoading: true, authError: null })
     try {
       await authService.changePassword({ currentPassword, newPassword })
-      set({ isLoading: false })
+      set({ isAuthLoading: false })
     } catch (err) {
       const msg = err.message === 'WRONG_PASSWORD'
         ? 'Current password is incorrect.'
         : 'Failed to change password.'
-      set({ error: msg, isLoading: false })
+      set({ authError: msg, isAuthLoading: false })
       throw new Error(msg)
     }
   },
 
   deleteAccount: async () => {
-    set({ isLoading: true })
+    set({ isAuthLoading: true })
     try {
       await authService.deleteAccount()
       get().logout()
     } catch {
-      set({ isLoading: false })
+      set({ isAuthLoading: false })
       throw new Error('Failed to delete account')
     }
   },
