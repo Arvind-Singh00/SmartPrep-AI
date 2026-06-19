@@ -15,7 +15,7 @@ export default function Navbar() {
     '/quizzes': 'Quizzes',
     '/flashcards': 'Flashcards',
     '/profile': 'Profile',
-  }[location.pathname] || 'AI Study Buddy'
+  }[location.pathname] || 'SmartPrep_AI'
 
   return (
     <header className="h-16 bg-white border-b border-neutral-200 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30">

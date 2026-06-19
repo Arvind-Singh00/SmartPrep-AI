@@ -1,7 +1,7 @@
 {
-  "name": "ai-study-buddy-backend",
+  "name": "Smartprep-ai-backend",
   "version": "1.0.0",
-  "description": "AI Study Buddy Backend API",
+  "description": "SmartPrep AI Backend API",
   "type": "module",
   "main": "src/server.js",
   "scripts": {

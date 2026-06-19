@@ -204,7 +204,7 @@ export default function Chat() {
             </button>
           </form>
           <div className="text-center mt-2">
-            <p className="text-[11px] text-neutral-400">AI Study Buddy can make mistakes. Consider verifying important information.</p>
+            <p className="text-[11px] text-neutral-400">SmartPrep_AI can make mistakes. Consider verifying important information.</p>
           </div>
         </div>
       </div>

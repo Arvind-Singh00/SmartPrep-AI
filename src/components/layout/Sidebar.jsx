@@ -44,9 +44,9 @@ export default function Sidebar() {
         <div className="h-16 flex items-center px-6 border-b border-neutral-800 shrink-0">
           <div className="flex items-center gap-3 text-white font-bold text-lg">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
-              SB
+              SP
             </div>
-            AI Study Buddy
+            SmartPrep_AI
           </div>
         </div>
 

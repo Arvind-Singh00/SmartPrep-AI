@@ -1,6 +1,6 @@
-# AI Study Buddy 🎯
+# SmartPrep AI 🎯
 
-AI Study Buddy is an intelligent, RAG-powered application designed to help students study smarter, not harder. You can upload PDF notes, and the application will use artificial intelligence to let you chat with your documents, automatically generate interactive quizzes, and create study flashcards—all backed by a custom Retrieval-Augmented Generation pipeline.
+SmartPrep AI is an intelligent, RAG-powered application designed to help students study smarter, not harder. You can upload PDF notes, and the application will use artificial intelligence to let you chat with your documents, automatically generate interactive quizzes, and create study flashcards—all backed by a custom Retrieval-Augmented Generation pipeline.
 
 ## 🌟 Features
 

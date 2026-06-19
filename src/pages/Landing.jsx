@@ -9,9 +9,9 @@ export default function Landing() {
       <nav className="flex items-center justify-between px-6 lg:px-12 py-6">
         <div className="flex items-center gap-3 text-primary-600 font-bold text-xl">
           <div className="w-10 h-10 rounded-xl bg-gradient-brand text-white flex items-center justify-center shadow-sm">
-            SB
+            SP
           </div>
-          AI Study Buddy
+          SmartPrep_AI
         </div>
         <div className="flex items-center gap-4">
           <Link to="/login" className="text-neutral-600 font-medium hover:text-neutral-900 transition-colors">Log in</Link>
