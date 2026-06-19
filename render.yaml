@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: smartprep-backend
+    env: node
+    plan: free
+    region: oregon
+    buildCommand: "cd backend && npm install"
+    startCommand: "cd backend && npm start"
+    autoDeploy: true
+    envVars:
+      # Add required environment variables as Render Service Environment variables
+      # Example (do NOT store secrets here in plain text):
+      # - key: MONGODB_URI
+      #   value: ${MONGODB_URI}
+      # - key: JWT_SECRET
+      #   value: ${JWT_SECRET}
