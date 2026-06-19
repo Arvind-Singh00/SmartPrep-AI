@@ -14,3 +14,21 @@ services:
       #   value: ${MONGODB_URI}
       # - key: JWT_SECRET
       #   value: ${JWT_SECRET}
+
+  - type: web
+    name: smartprep-frontend
+    env: static
+    plan: free
+    region: oregon
+    buildCommand: "npm install && npm run build"
+    staticPublishPath: ./dist
+    autoDeploy: true
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://smartprep-ai-61yc.onrender.com/api
+      - key: VITE_USE_MOCK
+        value: false
