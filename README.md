@@ -34,6 +34,29 @@
 
 ---
 
+## 📁 Project Structure
+
+```
+SmartPrep-AI/
+├── src/                     # React frontend source
+│   ├── components/          # Reusable UI components
+│   ├── pages/               # Dashboard, Chat, Quiz, Flashcards
+│   └── store/               # Zustand state management
+├── backend/                 # Express backend
+│   ├── src/
+│   │   ├── controllers/     # Route handlers
+│   │   ├── models/          # Mongoose schemas
+│   │   ├── routes/          # API routes
+│   │   └── services/        # Gemini & Groq AI services
+│   └── package.json
+├── Prompts/                 # AI prompt templates
+├── index.html
+├── vite.config.js
+└── package.json
+```
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -50,11 +73,11 @@ cd SmartPrep-AI
 
 ### 2. Setup Backend
 ```bash
-cd server    # or backend folder
+cd backend
 npm install
 ```
 
-Create a `.env` file:
+Create a `.env` file inside `backend/`:
 ```env
 PORT=5000
 MONGODB_URL=your_mongodb_connection_string
@@ -69,11 +92,12 @@ npm run dev
 
 ### 3. Setup Frontend
 ```bash
-cd client    # or frontend folder
+# Go back to root
+cd ..
 npm install
 ```
 
-Create a `.env` file:
+Create a `.env` file in the root:
 ```env
 VITE_SERVER_URL=http://localhost:5000
 ```
@@ -83,42 +107,6 @@ npm run dev
 ```
 
 Open **http://localhost:5173** 🎉
-
----
-
-## 📁 Project Structure
-
-```
-SmartPrep-AI/
-├── client/                  # React frontend (Vite)
-│   ├── src/
-│   │   ├── components/      # Reusable UI components
-│   │   ├── pages/           # Dashboard, Chat, Quiz, Flashcards
-│   │   ├── store/           # Zustand state management
-│   │   └── utils/           # Helpers & API calls
-│   └── public/
-├── server/                  # Express backend
-│   ├── controllers/         # Route handlers
-│   ├── models/              # Mongoose schemas
-│   ├── routes/              # API routes
-│   ├── services/            # Gemini & Groq AI services
-│   └── config/              # DB & token config
-```
-
----
-
-## 🔌 API Endpoints
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/api/auth/register` | Register user |
-| `POST` | `/api/auth/login` | Login user |
-| `POST` | `/api/documents/upload` | Upload PDF |
-| `GET` | `/api/documents` | Get all documents |
-| `POST` | `/api/chat` | RAG-powered chat with document |
-| `POST` | `/api/quiz/generate` | Generate quiz from document |
-| `POST` | `/api/flashcards/generate` | Generate flashcards from document |
-| `GET` | `/api/dashboard` | Get study stats & streak |
 
 ---
 
@@ -142,17 +130,34 @@ Answer returned to user ✅
 
 ---
 
+## 🔌 API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/auth/register` | Register user |
+| `POST` | `/api/auth/login` | Login user |
+| `POST` | `/api/documents/upload` | Upload PDF |
+| `GET` | `/api/documents` | Get all documents |
+| `POST` | `/api/chat` | RAG-powered chat with document |
+| `POST` | `/api/quiz/generate` | Generate quiz from document |
+| `POST` | `/api/flashcards/generate` | Generate flashcards from document |
+| `GET` | `/api/dashboard` | Get study stats & streak |
+
+---
+
 ## 🌐 Deployment
 
 ### Backend — Web Service (Render)
 | Setting | Value |
 |---|---|
+| Root Directory | `backend` |
 | Build Command | `npm install` |
 | Start Command | `npm start` |
 
 ### Frontend — Static Site (Render / Vercel)
 | Setting | Value |
 |---|---|
+| Root Directory | `.` (root) |
 | Build Command | `npm install && npm run build` |
 | Publish Directory | `dist` |
 
