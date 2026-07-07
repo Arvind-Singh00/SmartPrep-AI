@@ -1,100 +1,163 @@
-# SmartPrep AI 🎯
+# 🎯 SmartPrep AI
 
-SmartPrep AI is an intelligent, RAG-powered application designed to help students study smarter, not harder. You can upload PDF notes, and the application will use artificial intelligence to let you chat with your documents, automatically generate interactive quizzes, and create study flashcards—all backed by a custom Retrieval-Augmented Generation pipeline.
+> **RAG-powered AI study assistant** — Upload your notes, chat with your documents, generate quizzes, and create flashcards instantly.
 
-## 🌟 Features
+![SmartPrep AI](https://img.shields.io/badge/SmartPrep-AI%20Powered-black?style=for-the-badge&logo=google)
+![React](https://img.shields.io/badge/React-Vite-61DAFB?style=for-the-badge&logo=react)
+![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=node.js)
+![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb)
+![Gemini](https://img.shields.io/badge/Google-Gemini-4285F4?style=for-the-badge&logo=google)
+![Groq](https://img.shields.io/badge/Groq-LLaMA%203.3-orange?style=for-the-badge)
 
-- **Document Management**: Upload PDF notes (up to 10MB) to your personal library.
-- **RAG-Powered Chat**: Ask questions about your notes and get accurate, context-aware answers with citations indicating exactly which chunk of your document the AI used.
-- **Auto-Generated Quizzes**: Dynamically generate multiple-choice quizzes with explanations based purely on the content of your PDFs.
-- **Flashcard Decks**: Automatically extract key concepts from your notes to generate ready-to-study flashcard decks.
-- **Dynamic Dashboard**: Track your study streak, total quizzes taken, and average scores natively calculated from your attempts.
-- **Split AI Architecture**: Leverages **Google Gemini** for lightning-fast OCR and document embeddings, while utilizing **Groq** (LLaMA 3.3 70B Versatile) for high-frequency chat and generation tasks, effectively eliminating standard AI free-tier quota limits.
+---
 
-## 🚀 Tech Stack
+## ✨ Features
 
-### Frontend
-- **React.js** (Vite)
-- **Tailwind CSS** (for styling)
-- **Zustand** (for state management)
-- **Framer Motion** (for micro-animations)
+- 📄 **Document Management** — Upload PDF notes (up to 10MB) to your personal library
+- 💬 **RAG-Powered Chat** — Ask questions about your notes and get context-aware answers with exact citations from your document
+- 🧠 **Auto-Generated Quizzes** — Dynamically generate multiple-choice quizzes with explanations based on your PDF content
+- 🃏 **Flashcard Decks** — Automatically extract key concepts from your notes into ready-to-study flashcards
+- 📊 **Dynamic Dashboard** — Track your study streak, total quizzes taken, and average scores
+- ⚡ **Split AI Architecture** — Google Gemini for OCR & embeddings + Groq (LLaMA 3.3 70B) for chat & generation, effectively eliminating standard AI free-tier quota limits
 
-### Backend
-- **Node.js** & **Express**
-- **MongoDB** with Mongoose (Database)
-- **Google Gen AI SDK** (for Embeddings and PDF processing)
-- **Groq SDK** (for Chat, Quiz, and Flashcard generation)
-- Local Vector similarity chunking implementation
+---
 
-## ⚙️ Local Setup
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| **Frontend** | React.js (Vite), Tailwind CSS, Zustand, Framer Motion |
+| **Backend** | Node.js, Express.js |
+| **Database** | MongoDB Atlas (Mongoose) |
+| **AI — Embeddings & OCR** | Google Gemini (Gen AI SDK) |
+| **AI — Chat & Generation** | Groq SDK (LLaMA 3.3 70B Versatile) |
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (v18+)
-- MongoDB instance (local or Atlas)
-- [Google Gemini API Key](https://aistudio.google.com/app/apikey)
-- [Groq API Key](https://console.groq.com/keys)
+- Node.js v18+
+- MongoDB Atlas account
+- Google Gemini API key
+- Groq API key
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/YOUR-USERNAME/YOUR-REPO-NAME.git
-cd "AI Study Buddy"
+git clone https://github.com/Arvind-Singh00/SmartPrep-AI.git
+cd SmartPrep-AI
 ```
 
-### 2. Backend Setup
-Navigate to the backend directory and install dependencies:
+### 2. Setup Backend
 ```bash
-cd backend
+cd server    # or backend folder
 npm install
 ```
 
-Create a `.env` file in the `backend/` directory:
+Create a `.env` file:
 ```env
-# Server
-NODE_ENV=development
-PORT=3000
-
-# Database
-MONGODB_URI=mongodb+srv://<username>:<password>@cluster...
-
-# JWT Secrets (replace with strong random strings for production)
-JWT_SECRET=super_secret_jwt_key
-JWT_REFRESH_SECRET=super_secret_jwt_refresh_key
-JWT_EXPIRES_IN=7d
-JWT_REFRESH_EXPIRES_IN=30d
-
-# AI API Keys
-GEMINI_API_KEY=your_gemini_api_key_here
-GROQ_API_KEY=your_groq_api_key_here
-
-# Settings
-MAX_UPLOAD_SIZE_MB=10
-CORS_ORIGIN=http://localhost:5173
+PORT=5000
+MONGODB_URL=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+GEMINI_API_KEY=your_google_gemini_api_key
+GROQ_API_KEY=your_groq_api_key
 ```
 
-Start the backend development server:
 ```bash
 npm run dev
 ```
 
-### 3. Frontend Setup
-Open a new terminal window, navigate to the root directory, and install dependencies:
+### 3. Setup Frontend
 ```bash
+cd client    # or frontend folder
 npm install
 ```
 
-Create a `.env` file in the root directory:
+Create a `.env` file:
 ```env
-VITE_API_BASE_URL=http://localhost:3000/api
-VITE_USE_MOCK=false
+VITE_SERVER_URL=http://localhost:5000
 ```
 
-Start the frontend development server:
 ```bash
 npm run dev
 ```
 
-### 4. Open the App
-Navigate to `http://localhost:5173` in your browser. Create an account and upload your first PDF!
+Open **http://localhost:5173** 🎉
+
+---
+
+## 📁 Project Structure
+
+```
+SmartPrep-AI/
+├── client/                  # React frontend (Vite)
+│   ├── src/
+│   │   ├── components/      # Reusable UI components
+│   │   ├── pages/           # Dashboard, Chat, Quiz, Flashcards
+│   │   ├── store/           # Zustand state management
+│   │   └── utils/           # Helpers & API calls
+│   └── public/
+├── server/                  # Express backend
+│   ├── controllers/         # Route handlers
+│   ├── models/              # Mongoose schemas
+│   ├── routes/              # API routes
+│   ├── services/            # Gemini & Groq AI services
+│   └── config/              # DB & token config
+```
+
+---
+
+## 🔌 API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/auth/register` | Register user |
+| `POST` | `/api/auth/login` | Login user |
+| `POST` | `/api/documents/upload` | Upload PDF |
+| `GET` | `/api/documents` | Get all documents |
+| `POST` | `/api/chat` | RAG-powered chat with document |
+| `POST` | `/api/quiz/generate` | Generate quiz from document |
+| `POST` | `/api/flashcards/generate` | Generate flashcards from document |
+| `GET` | `/api/dashboard` | Get study stats & streak |
+
+---
+
+## 🧠 How RAG Works
+
+```
+User uploads PDF
+      ↓
+Gemini extracts & chunks text → generates embeddings
+      ↓
+Stored in MongoDB as vector chunks
+      ↓
+User asks a question
+      ↓
+Relevant chunks retrieved (semantic search)
+      ↓
+Groq LLaMA 3.3 generates answer with citations
+      ↓
+Answer returned to user ✅
+```
+
+---
+
+## 🌐 Deployment
+
+### Backend — Web Service (Render)
+| Setting | Value |
+|---|---|
+| Build Command | `npm install` |
+| Start Command | `npm start` |
+
+### Frontend — Static Site (Render / Vercel)
+| Setting | Value |
+|---|---|
+| Build Command | `npm install && npm run build` |
+| Publish Directory | `dist` |
+
+---
 
 ## 📄 License
-MIT License
+
+MIT © [Arvind Singh](https://github.com/Arvind-Singh00)
