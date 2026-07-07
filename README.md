@@ -106,8 +106,6 @@ VITE_SERVER_URL=http://localhost:5000
 npm run dev
 ```
 
-Open **http://localhost:5173** 🎉
-
 ---
 
 ## 🧠 How RAG Works
