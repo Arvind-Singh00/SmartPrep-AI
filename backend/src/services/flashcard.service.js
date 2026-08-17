@@ -37,20 +37,28 @@ const flashcardService = {
    * Generate flashcards from a note.
    */
   async generateFlashcards({ ownerId, noteId, count = 20 }) {
-    const note = await Note.findOne({ _id: noteId, ownerId });
+    const note = await Note.findOne({ _id: noteId, ownerId }).select('+extractedText');
     if (!note) {
       throw new NotFoundError('Note not found or unauthorized.');
     }
 
     // Retrieve generic sample
-    const results = await embeddingsService.queryRelevantChunks({
-      query: `Key terms, definitions, dates, and core concepts`,
-      ownerId,
-      noteIds: [noteId],
-      topK: 10,
-    });
+    let context = '';
+    try {
+      const results = await embeddingsService.queryRelevantChunks({
+        query: `Key terms, definitions, dates, and core concepts`,
+        ownerId,
+        noteIds: [noteId],
+        topK: 10,
+      });
+      context = results.documents?.[0]?.filter(Boolean).join('\n\n') || '';
+    } catch (err) {
+      logger.warn('Embedding query fallback for flashcards generation', { noteId, error: err.message });
+    }
 
-    const context = results.documents?.[0]?.join('\n\n') || '';
+    if (!context || context.trim().length < 20) {
+      context = (note.extractedText || note.excerpt || note.title || '').trim();
+    }
 
     if (!context) {
       throw new ValidationError(['Note does not have enough content to generate flashcards.']);

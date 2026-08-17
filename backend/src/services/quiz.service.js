@@ -16,18 +16,27 @@ const quizService = {
    */
   async generateQuiz({ ownerId, noteId, count = 5, difficulty = 'medium' }) {
     // 1. Verify note ownership
-    const note = await Note.findOne({ _id: noteId, ownerId });
+    const note = await Note.findOne({ _id: noteId, ownerId }).select('+extractedText');
     if (!note) throw new NotFoundError('Note not found or unauthorized.');
 
     // 2. Retrieve representative chunks from the note
-    const results = await embeddingsService.queryRelevantChunks({
-      query: 'Core concepts, definitions, key facts, and important terms',
-      ownerId,
-      noteIds: [noteId],
-      topK: 15,
-    });
+    let context = '';
+    try {
+      const results = await embeddingsService.queryRelevantChunks({
+        query: 'Core concepts, definitions, key facts, and important terms',
+        ownerId,
+        noteIds: [noteId],
+        topK: 15,
+      });
+      context = results.documents?.[0]?.filter(Boolean).join('\n\n') || '';
+    } catch (err) {
+      logger.warn('Embedding query fallback for quiz generation', { noteId, error: err.message });
+    }
 
-    const context = results.documents?.[0]?.join('\n\n') || '';
+    if (!context || context.trim().length < 20) {
+      context = (note.extractedText || note.excerpt || note.title || '').trim();
+    }
+
     if (!context) throw new ValidationError(['Note does not have enough indexed content. Please wait for processing to finish.']);
 
     // 3. Build prompt

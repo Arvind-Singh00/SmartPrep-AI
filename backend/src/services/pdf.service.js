@@ -24,10 +24,25 @@ const pdfService = {
       const buffer = await fs.readFile(filePath);
       const data = await pdfParse(buffer);
 
-      // Extract text natively via Gemini OCR for maximum accuracy
-      const text = await geminiService.extractTextFromPdf(filePath);
+      let text = data.text || '';
 
-      logger.info('PDF text extracted', {
+      // If pdf-parse returned very little text (e.g. scanned image PDF), try Gemini OCR
+      if (!text || text.trim().length < 50) {
+        try {
+          const ocrText = await geminiService.extractTextFromPdf(filePath);
+          if (ocrText && ocrText.trim()) {
+            text = ocrText;
+          }
+        } catch (ocrError) {
+          logger.warn('Gemini OCR fallback skipped or failed', { error: ocrError.message });
+        }
+      }
+
+      if (!text || !text.trim()) {
+        throw new AppError('Could not extract any text from the PDF.', 400, 'PDF_EMPTY');
+      }
+
+      logger.info('PDF text extracted successfully', {
         filePath,
         pageCount: data.numpages,
         textLength: text.length,

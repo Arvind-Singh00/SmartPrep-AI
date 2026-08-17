@@ -75,18 +75,29 @@ const ragService = {
       topK: 5,
     });
 
-    const context = buildContext(
+    let context = buildContext(
       results.documents,
       results.metadatas,
       results.distances,
     );
 
+    // Fallback: If vector store returned no context, query notes directly from DB
+    if (!context && noteIds && noteIds.length > 0) {
+      try {
+        const Note = (await import('../models/Note.model.js')).default;
+        const notes = await Note.find({ _id: { $in: noteIds }, ownerId }).select('+extractedText');
+        context = notes.map(n => `[Source: ${n.originalFilename}]: ${n.extractedText || n.excerpt || ''}`).join('\n\n');
+      } catch (err) {
+        logger.warn('Fallback note fetch failed for RAG context', { error: err.message });
+      }
+    }
+
     // 2. Build the grounding system prompt.
     const systemPrompt = [
       'You are the AI Study Buddy, a helpful academic assistant.',
-      'Answer the user\'s question ONLY using the CONTEXT provided below.',
-      'If the answer cannot be found in the CONTEXT, say: "I cannot find that information in your notes."',
-      'Always cite your sources using [Source: filename, Chunk N] when referencing specific information.',
+      'Answer the user\'s question using the CONTEXT provided below.',
+      'If the answer cannot be found in the CONTEXT, answer to the best of your general knowledge and clearly state that it is general academic knowledge.',
+      'Always cite your sources using [Source: filename] when referencing specific information from notes.',
       'Keep answers concise, accurate, and well-structured.',
       '',
       '--- CONTEXT START ---',
