@@ -10,10 +10,12 @@ import logger from '../utils/logger.js';
 
 
 class GeminiService {
-  constructor() {
-    this.ai = new GoogleGenAI({
-      apiKey: config.gemini.apiKey,
-    });
+  _getClient() {
+    const apiKey = config.gemini.apiKey;
+    if (!apiKey) {
+      throw new GeminiApiError('GEMINI_API_KEY environment variable is not configured on the server.');
+    }
+    return new GoogleGenAI({ apiKey });
   }
 
   _handleApiError(error, contextMessage) {
@@ -41,11 +43,12 @@ class GeminiService {
 
   async generateEmbeddings(texts) {
     try {
+      const client = this._getClient();
       const results = await Promise.all(
         texts.map(async (text) => {
           try {
-            const response = await this.ai.models.embedContent({
-              model: 'gemini-embedding-2',
+            const response = await client.models.embedContent({
+              model: 'text-embedding-004',
               contents: text,
             });
             return response.embeddings[0].values;
@@ -67,15 +70,16 @@ class GeminiService {
 
   async extractTextFromPdf(filePath) {
     let uploadResult = null;
+    const client = this._getClient();
     try {
       logger.info('Uploading PDF to Gemini for extraction...', { filePath });
-      uploadResult = await this.ai.files.upload({
+      uploadResult = await client.files.upload({
         file: filePath,
         mimeType: 'application/pdf',
       });
 
       logger.info('PDF uploaded, starting Gemini extraction...', { fileName: uploadResult.name });
-      const response = await this.ai.models.generateContent({
+      const response = await client.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: [
           {
@@ -95,7 +99,7 @@ class GeminiService {
       // Always clean up the file from Google's servers
       if (uploadResult && uploadResult.name) {
         try {
-          await this.ai.files.delete({ name: uploadResult.name });
+          await client.files.delete({ name: uploadResult.name });
           logger.info('Cleaned up PDF from Gemini servers.', { fileName: uploadResult.name });
         } catch (cleanupError) {
           logger.warn('Failed to delete PDF from Gemini servers', { error: cleanupError.message });

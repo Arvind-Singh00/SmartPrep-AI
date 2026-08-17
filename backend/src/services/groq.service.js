@@ -10,10 +10,12 @@ class GroqApiError extends AppError {
 }
 
 class GroqService {
-  constructor() {
-    this.groq = new Groq({
-      apiKey: config.groq.apiKey || 'missing-key',
-    });
+  _getClient() {
+    const apiKey = config.groq.apiKey;
+    if (!apiKey || apiKey === 'missing-key') {
+      throw new GroqApiError('GROQ_API_KEY environment variable is not configured on the server.');
+    }
+    return new Groq({ apiKey });
   }
 
   _handleApiError(error, contextMessage) {
@@ -46,7 +48,7 @@ class GroqService {
         { role: 'user', content: userQuery },
       ];
 
-      const response = await this.groq.chat.completions.create({
+      const response = await this._getClient().chat.completions.create({
         messages,
         model: 'llama-3.3-70b-versatile',
         temperature: 0.2,
@@ -66,7 +68,7 @@ class GroqService {
         { role: 'user', content: `CONTEXT:\n${context}` },
       ];
 
-      const response = await this.groq.chat.completions.create({
+      const response = await this._getClient().chat.completions.create({
         messages,
         model: 'llama-3.3-70b-versatile',
         temperature: 0.1,

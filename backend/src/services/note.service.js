@@ -5,6 +5,7 @@
  */
 
 import Note from '../models/Note.model.js';
+import embeddingsService from './embeddings.service.js';
 import { NotFoundError } from '../utils/AppError.js';
 import logger from '../utils/logger.js';
 
@@ -86,6 +87,13 @@ const noteService = {
     const note = await Note.findOneAndDelete({ _id: noteId, ownerId });
     if (!note) {
       throw new NotFoundError('Note');
+    }
+
+    // Cascade delete vector chunks stored in MongoDB
+    try {
+      await embeddingsService.deleteByNoteId(noteId);
+    } catch (err) {
+      logger.warn('Failed to delete vector chunks for note', { noteId, error: err.message });
     }
 
     logger.info('Note deleted', { noteId, ownerId });
