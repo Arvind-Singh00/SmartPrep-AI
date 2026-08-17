@@ -33,6 +33,7 @@ const submit = catchAsync(async (req, res) => {
     req.params.id,
     req.user._id,
     req.body.answers,
+    req.body.timeTakenSeconds,
   );
 
   successResponse(res, result);

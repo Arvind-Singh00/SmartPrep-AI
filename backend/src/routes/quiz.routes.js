@@ -36,9 +36,30 @@ const generateSchema = z.object({
 
 const submitSchema = z.object({
   body: z.object({
-    answers: z.record(z.string(), z.string().nullable(), {
-      required_error: 'Answers are required',
-    }),
+    answers: z
+      .record(
+        z.string(),
+        z.union([
+          z.string(),
+          z.null(),
+          z.object({
+            selectedOptionId: z.string().nullable().optional(),
+            flagged: z.boolean().optional(),
+          }),
+        ]),
+        { required_error: 'Answers are required' }
+      )
+      .transform((answers) =>
+        Object.fromEntries(
+          Object.entries(answers).map(([questionId, answer]) => [
+            questionId,
+            answer && typeof answer === 'object'
+              ? answer.selectedOptionId ?? null
+              : answer,
+          ])
+        )
+      ),
+    timeTakenSeconds: z.coerce.number().int().min(0).optional().default(0),
   }),
 });
 

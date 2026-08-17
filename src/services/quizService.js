@@ -42,7 +42,10 @@ const quizService = {
 
     // For real backend: answers map is { [questionId]: selectedAnswerText }
     const backendAnswers = isReal
-      ? Object.fromEntries(Object.entries(answers).map(([k, v]) => [k, v?.selectedOptionId || v || null]))
+      ? Object.fromEntries(Object.entries(answers).map(([k, v]) => {
+        const selectedOptionId = v && typeof v === 'object' ? v.selectedOptionId : v
+        return [k, selectedOptionId ?? null]
+      }))
       : answers
 
     return adapter.post(
