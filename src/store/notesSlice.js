@@ -63,7 +63,7 @@ const createNotesSlice = (set, get) => ({
   commitDelete: async (noteId) => {
     try { await notesService.delete(noteId) } catch {}
     set((s) => ({
-      notes: s.notes.filter((n) => n.id !== noteId),
+      notes: s.notes.filter((n) => (n.id || n._id) !== noteId),
       pendingDeleteId: null,
       pendingDeleteTimer: null,
     }))
@@ -88,7 +88,7 @@ const createNotesSlice = (set, get) => ({
   // Selectors (computed)
   getFilteredNotes: () => {
     const { notes, searchTerm, filters, pendingDeleteId } = get()
-    let result = notes.filter((n) => n.id !== pendingDeleteId)
+    let result = notes.filter((n) => (n.id || n._id) !== pendingDeleteId)
 
     if (searchTerm) {
       const q = searchTerm.toLowerCase()

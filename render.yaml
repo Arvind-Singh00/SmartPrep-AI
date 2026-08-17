@@ -8,12 +8,27 @@ services:
     startCommand: "cd backend && npm start"
     autoDeploy: true
     envVars:
-      # Add required environment variables as Render Service Environment variables
-      # Example (do NOT store secrets here in plain text):
-      # - key: MONGODB_URI
-      #   value: ${MONGODB_URI}
-      # - key: JWT_SECRET
-      #   value: ${JWT_SECRET}
+      - key: NODE_ENV
+        value: production
+      # ⚠️ Set the following secret values in Render Dashboard → Environment
+      # (never store real secrets in this file)
+      - key: MONGODB_URI
+        sync: false   # set manually in Render dashboard
+      - key: JWT_SECRET
+        sync: false   # min 32 chars, e.g. use: openssl rand -hex 32
+      - key: JWT_REFRESH_SECRET
+        sync: false   # min 32 chars, different from JWT_SECRET
+      - key: GEMINI_API_KEY
+        sync: false   # from https://aistudio.google.com/app/apikey
+      - key: GROQ_API_KEY
+        sync: false   # from https://console.groq.com/keys
+      # CORS_ORIGIN must match your frontend's exact Render URL
+      - key: CORS_ORIGIN
+        value: https://smartprep-frontend.onrender.com
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: JWT_REFRESH_EXPIRES_IN
+        value: 30d
 
   - type: web
     name: smartprep-frontend

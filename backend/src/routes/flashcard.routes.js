@@ -20,7 +20,7 @@ const generateSchema = z.object({
   body: z.object({
     noteId: z.string({ required_error: 'noteId is required' }),
     count: z
-      .number()
+      .coerce.number()  // coerce strings → number (e.g. from form inputs)
       .int()
       .max(50, 'Count must be at most 50')
       .optional()

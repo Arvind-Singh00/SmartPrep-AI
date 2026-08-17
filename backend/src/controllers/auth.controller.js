@@ -21,7 +21,10 @@ const register = catchAsync(async (req, res) => {
   res.cookie('refreshToken', result.refreshToken, {
     httpOnly: true,
     secure: config.env === 'production',
-    sameSite: config.env === 'production' ? 'strict' : 'lax',
+    // Must be 'none' (not 'strict') for cross-origin requests between
+    // the Render static frontend and Render backend service.
+    // SameSite=None requires Secure=true.
+    sameSite: config.env === 'production' ? 'none' : 'lax',
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
 
@@ -40,7 +43,7 @@ const login = catchAsync(async (req, res) => {
   res.cookie('refreshToken', result.refreshToken, {
     httpOnly: true,
     secure: config.env === 'production',
-    sameSite: config.env === 'production' ? 'strict' : 'lax',
+    sameSite: config.env === 'production' ? 'none' : 'lax',
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
 
@@ -58,7 +61,7 @@ const refresh = catchAsync(async (req, res) => {
   res.cookie('refreshToken', result.refreshToken, {
     httpOnly: true,
     secure: config.env === 'production',
-    sameSite: config.env === 'production' ? 'strict' : 'lax',
+    sameSite: config.env === 'production' ? 'none' : 'lax',
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
 

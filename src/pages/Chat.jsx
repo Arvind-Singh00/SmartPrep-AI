@@ -56,7 +56,7 @@ export default function Chat() {
     }
     
     // Send all real note IDs so the RAG engine can search across all uploaded notes
-    const noteIds = notes.map(n => n.id).filter(Boolean)
+    const noteIds = notes.map(n => n.id || n._id).filter(Boolean)
     await sendMessage(targetChatId, text, noteIds)
   }
 

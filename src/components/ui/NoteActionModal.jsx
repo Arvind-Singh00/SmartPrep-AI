@@ -27,7 +27,7 @@ export default function NoteActionModal({ note, isOpen, onClose }) {
 
   const handleChat = () => {
     handleClose()
-    navigate('/chat', { state: { noteIds: [note.id] } })
+    navigate('/chat', { state: { noteIds: [note.id || note._id] } })
   }
 
   const handleGenerateQuiz = async () => {
@@ -35,7 +35,8 @@ export default function NoteActionModal({ note, isOpen, onClose }) {
     setError(null)
     try {
       const { default: quizService } = await import('../../services/quizService')
-      const quiz = await quizService.generateQuiz({ noteId: note.id, count: questionCount, difficulty })
+      const noteId = note.id || note._id   // real backend uses _id
+      const quiz = await quizService.generateQuiz({ noteId, count: questionCount, difficulty })
       const quizId = quiz?.id || quiz?._id
       handleClose()
       if (quizId) navigate(`/quizzes/${quizId}`)
@@ -52,7 +53,8 @@ export default function NoteActionModal({ note, isOpen, onClose }) {
     setError(null)
     try {
       const { default: flashcardsService } = await import('../../services/flashcardsService')
-      const deck = await flashcardsService.generateDeck({ noteId: note.id, count: cardCount })
+      const noteId = note.id || note._id   // real backend uses _id
+      const deck = await flashcardsService.generateDeck({ noteId, count: cardCount })
       const deckId = deck?.id || deck?._id
       handleClose()
       if (deckId) navigate(`/flashcards/${deckId}`)
