@@ -30,7 +30,9 @@ const envSchema = z.object({
   GROQ_API_KEY: z.string().min(1, 'GROQ_API_KEY is required'),
   CHROMA_SERVER_URL: z.string().default('http://localhost:8000'),
   MAX_UPLOAD_SIZE_MB: z.coerce.number().default(10),
-  CORS_ORIGIN: z.string().default('http://localhost:5173'),
+  CORS_ORIGIN: z
+    .string()
+    .default('http://localhost:5173,https://smartprep-frontend.onrender.com'),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().default(900000),
   RATE_LIMIT_MAX_REQS: z.coerce.number().default(100),
 });

@@ -17,10 +17,14 @@ import { NotFoundError } from './utils/AppError.js';
 
 const app = express();
 
-const allowedOrigins = config.cors.origin
-  .split(',')
-  .map((origin) => origin.trim())
-  .filter(Boolean);
+const allowedOrigins = new Set([
+  ...config.cors.origin
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+  'http://localhost:5173',
+  'https://smartprep-frontend.onrender.com',
+]);
 
 /* ------------------------------------------------------------------ */
 /*  Global Middleware                                                  */
@@ -33,7 +37,7 @@ app.use(helmet());
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin || allowedOrigins.has(origin)) {
         return callback(null, true);
       }
 
