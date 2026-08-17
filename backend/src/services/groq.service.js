@@ -9,6 +9,14 @@ class GroqApiError extends AppError {
   }
 }
 
+const GROQ_MODELS = [
+  'llama-3.3-70b-versatile',
+  'llama-3.1-70b-versatile',
+  'llama3-70b-8192',
+  'llama-3.1-8b-instant',
+  'mixtral-8x7b-32768',
+];
+
 class GroqService {
   _getClient() {
     const apiKey = config.groq.apiKey;
@@ -38,53 +46,78 @@ class GroqService {
   }
 
   async generateChatResponse(systemPrompt, chatHistory, userQuery) {
-    try {
-      const messages = [
-        { role: 'system', content: systemPrompt },
-        ...chatHistory.map((msg) => ({
-          role: msg.role === 'assistant' ? 'assistant' : 'user',
-          content: msg.content,
-        })),
-        { role: 'user', content: userQuery },
-      ];
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...chatHistory.map((msg) => ({
+        role: msg.role === 'assistant' ? 'assistant' : 'user',
+        content: msg.content,
+      })),
+      { role: 'user', content: userQuery },
+    ];
 
-      const response = await this._getClient().chat.completions.create({
-        messages,
-        model: 'llama-3.3-70b-versatile',
-        temperature: 0.2,
-        max_tokens: 800,
-      });
+    let lastError = null;
+    const client = this._getClient();
 
-      return response.choices[0].message.content;
-    } catch (error) {
-      this._handleApiError(error, 'Failed to generate chat response');
+    for (const model of GROQ_MODELS) {
+      try {
+        const response = await client.chat.completions.create({
+          messages,
+          model,
+          temperature: 0.2,
+          max_tokens: 800,
+        });
+
+        return response.choices[0].message.content;
+      } catch (error) {
+        lastError = error;
+        const isNotFound = error.status === 404 || (error.message && error.message.includes('model_not_found'));
+        if (isNotFound) {
+          logger.warn(`Groq model ${model} not found, trying fallback model...`);
+          continue;
+        }
+        this._handleApiError(error, 'Failed to generate chat response');
+      }
     }
+
+    this._handleApiError(lastError || new Error('All Groq models failed'), 'Failed to generate chat response');
   }
 
   async generateStructuredData(systemPrompt, context) {
-    try {
-      const messages = [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: `CONTEXT:\n${context}` },
-      ];
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: `CONTEXT:\n${context}` },
+    ];
 
-      const response = await this._getClient().chat.completions.create({
-        messages,
-        model: 'llama-3.3-70b-versatile',
-        temperature: 0.1,
-        max_tokens: 2000,
-        response_format: { type: 'json_object' },
-      });
+    let lastError = null;
+    const client = this._getClient();
 
-      return JSON.parse(response.choices[0].message.content);
-    } catch (error) {
-      // Groq might throw a parsing error if JSON is malformed, but JSON mode usually prevents it.
-      if (error instanceof SyntaxError) {
-        logger.error('JSON parse failed for Groq output', { error: error.message });
-        throw new GroqApiError('Groq returned invalid JSON.');
+    for (const model of GROQ_MODELS) {
+      try {
+        const response = await client.chat.completions.create({
+          messages,
+          model,
+          temperature: 0.1,
+          max_tokens: 2000,
+          response_format: { type: 'json_object' },
+        });
+
+        return JSON.parse(response.choices[0].message.content);
+      } catch (error) {
+        lastError = error;
+        const isNotFound = error.status === 404 || (error.message && error.message.includes('model_not_found'));
+        if (isNotFound) {
+          logger.warn(`Groq model ${model} not found for structured data, trying fallback model...`);
+          continue;
+        }
+        if (error instanceof SyntaxError) {
+          logger.error('JSON parse failed for Groq output', { error: error.message });
+          throw new GroqApiError('Groq returned invalid JSON.');
+        }
+        this._handleApiError(error, 'Failed to generate structured data');
       }
-      this._handleApiError(error, 'Failed to generate structured data');
     }
+
+    this._handleApiError(lastError || new Error('All Groq models failed'), 'Failed to generate structured data');
   }
 }
 
