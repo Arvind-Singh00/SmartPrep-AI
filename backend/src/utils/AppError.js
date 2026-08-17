@@ -122,6 +122,16 @@ class LlmQuotaExceededError extends AppError {
   }
 }
 
+/**
+ * Thrown when every configured LLM provider is temporarily unavailable.
+ * @extends AppError
+ */
+class AiServiceUnavailableError extends AppError {
+  constructor(message = 'AI service temporarily unavailable. Please try again later.') {
+    super(message, 503, 'AI_SERVICE_UNAVAILABLE');
+  }
+}
+
 export {
   AppError,
   ValidationError,
@@ -132,4 +142,5 @@ export {
   RateLimitError,
   GeminiApiError,
   LlmQuotaExceededError,
+  AiServiceUnavailableError,
 };

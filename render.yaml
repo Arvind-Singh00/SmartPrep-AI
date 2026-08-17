@@ -1,11 +1,12 @@
 services:
   - type: web
     name: smartprep-backend
-    env: node
+    runtime: node
     plan: free
     region: oregon
     buildCommand: "cd backend && npm install"
     startCommand: "cd backend && npm start"
+    healthCheckPath: /api/health
     autoDeploy: true
     envVars:
       - key: NODE_ENV
@@ -22,9 +23,11 @@ services:
         sync: false   # from https://aistudio.google.com/app/apikey
       - key: GROQ_API_KEY
         sync: false   # from https://console.groq.com/keys
-      # CORS_ORIGIN must match your frontend's exact Render URL
       - key: CORS_ORIGIN
-        value: https://smartprep-frontend.onrender.com
+        fromService:
+          type: web
+          name: smartprep-frontend
+          envVarKey: RENDER_EXTERNAL_URL
       - key: JWT_EXPIRES_IN
         value: 7d
       - key: JWT_REFRESH_EXPIRES_IN
@@ -32,7 +35,7 @@ services:
 
   - type: web
     name: smartprep-frontend
-    env: static
+    runtime: static
     plan: free
     region: oregon
     buildCommand: "npm install && npx vite build"
@@ -43,7 +46,10 @@ services:
         source: /*
         destination: /index.html
     envVars:
-      - key: VITE_API_BASE_URL
-        value: https://smartprep-ai-61yc.onrender.com/api
+      - key: VITE_API_ORIGIN
+        fromService:
+          type: web
+          name: smartprep-backend
+          envVarKey: RENDER_EXTERNAL_URL
       - key: VITE_USE_MOCK
         value: false

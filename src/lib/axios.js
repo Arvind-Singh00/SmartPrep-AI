@@ -1,6 +1,10 @@
 import axios from 'axios'
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
+const trimTrailingSlash = (value) => value?.replace(/\/$/, '')
+
+const API_ORIGIN = trimTrailingSlash(import.meta.env.VITE_API_ORIGIN)
+const API_BASE_URL = trimTrailingSlash(import.meta.env.VITE_API_BASE_URL)
+const BASE_URL = API_ORIGIN ? `${API_ORIGIN}/api` : API_BASE_URL || '/api'
 
 const axiosClient = axios.create({
   baseURL: BASE_URL,
