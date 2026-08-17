@@ -59,8 +59,6 @@ const vectorChunkSchema = new Schema(
 
 // Compound index so we can efficiently fetch all chunks for a note
 vectorChunkSchema.index({ noteId: 1, chunkIndex: 1 });
-// Index for owner-scoped queries
-vectorChunkSchema.index({ ownerId: 1 });
 
 const VectorChunk = mongoose.model('VectorChunk', vectorChunkSchema);
 
