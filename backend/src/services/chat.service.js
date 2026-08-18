@@ -4,12 +4,15 @@
  * boundaries and interacts with the RAG service to generate AI answers.
  */
 
-import Chat from '../models/Chat.model.js';
-import Message from '../models/Message.model.js';
-import Note from '../models/Note.model.js';
-import mongoose from 'mongoose';
-import ragService from './rag.service.js';
-import { NotFoundError, ForbiddenError } from '../utils/AppError.js';
+import Chat from "../models/Chat.model.js";
+import Message from "../models/Message.model.js";
+import Note from "../models/Note.model.js";
+import mongoose from "mongoose";
+import ragService from "./rag.service.js";
+import { NotFoundError, ForbiddenError } from "../utils/AppError.js";
+
+const normalizeNoteIds = (noteIds = []) =>
+  [...new Set((noteIds || []).filter(Boolean).map(String))].sort();
 
 const chatService = {
   /**
@@ -17,10 +20,13 @@ const chatService = {
    * @param {{ownerId: string, title: string, noteIds: string[]}} params
    */
   async createChat({ ownerId, title, noteIds = [] }) {
-    // Filter out any invalid ObjectId strings to prevent Mongoose cast errors
-    const validNoteIds = (noteIds || []).filter(id => mongoose.Types.ObjectId.isValid(id));
+    // Filter out any invalid ObjectId strings to prevent Mongoose cast errors.
+    const validNoteIds = normalizeNoteIds(
+      (noteIds || []).filter((id) => mongoose.Types.ObjectId.isValid(id)),
+    );
 
-    // If notes are specified, verify the user owns ALL of them.
+    // If notes are specified, ensure the user owns them and reuse an existing chat
+    // for the same normalized note context instead of creating a duplicate session.
     if (validNoteIds.length > 0) {
       const ownedNotesCount = await Note.countDocuments({
         _id: { $in: validNoteIds },
@@ -28,13 +34,26 @@ const chatService = {
       });
 
       if (ownedNotesCount !== validNoteIds.length) {
-        throw new ForbiddenError('One or more notes do not belong to the user.');
+        throw new ForbiddenError(
+          "One or more notes do not belong to the user.",
+        );
+      }
+
+      const existingChat = await Chat.findOne({
+        ownerId,
+        noteIds: { $size: validNoteIds.length, $all: validNoteIds },
+      })
+        .sort({ lastActivityAt: -1 })
+        .lean();
+
+      if (existingChat) {
+        return existingChat;
       }
     }
 
     const chat = await Chat.create({
       ownerId,
-      title: title || 'New Chat',
+      title: title || "New Chat",
       noteIds: validNoteIds,
     });
 
@@ -49,13 +68,14 @@ const chatService = {
     // 1. Fetch chat and verify ownership
     const chat = await Chat.findOne({ _id: chatId, ownerId });
     if (!chat) {
-      throw new NotFoundError('Chat not found or unauthorized.');
+      throw new NotFoundError("Chat not found or unauthorized.");
     }
 
     // 2. Determine grounding notes (prefer request override, fallback to chat default)
-    let noteIdsToSearch = requestNoteIds && requestNoteIds.length > 0
-      ? requestNoteIds
-      : chat.noteIds;
+    let noteIdsToSearch =
+      requestNoteIds && requestNoteIds.length > 0
+        ? requestNoteIds
+        : chat.noteIds;
 
     // Verify ownership of requested note overrides
     if (requestNoteIds && requestNoteIds.length > 0) {
@@ -64,7 +84,9 @@ const chatService = {
         ownerId,
       });
       if (ownedNotesCount !== requestNoteIds.length) {
-        throw new ForbiddenError('One or more override notes do not belong to the user.');
+        throw new ForbiddenError(
+          "One or more override notes do not belong to the user.",
+        );
       }
     }
 
@@ -72,7 +94,7 @@ const chatService = {
     const userMessage = await Message.create({
       chatId,
       ownerId,
-      role: 'user',
+      role: "user",
       content: query,
     });
 
@@ -98,8 +120,9 @@ const chatService = {
     });
 
     // Format citations to match schema
-    const formattedCitations = citations.map(c => ({
-      sourceFilename: c.split(',')[0].replace('[Source: ', '').trim() || 'Unknown Note',
+    const formattedCitations = citations.map((c) => ({
+      sourceFilename:
+        c.split(",")[0].replace("[Source: ", "").trim() || "Unknown Note",
       chunkIndex: parseInt(c.match(/Chunk (\d+)/)?.[1], 10) || 0,
       pageNumber: null,
     }));
@@ -108,7 +131,7 @@ const chatService = {
     const aiMessage = await Message.create({
       chatId,
       ownerId,
-      role: 'assistant',
+      role: "assistant",
       content: answer,
       citations: formattedCitations,
     });
@@ -116,7 +139,7 @@ const chatService = {
     // 7. Update chat activity
     await Chat.updateOne(
       { _id: chatId },
-      { $set: { lastActivityAt: new Date() } }
+      { $set: { lastActivityAt: new Date() } },
     );
 
     return {
@@ -129,8 +152,7 @@ const chatService = {
    * Get all chats for a user.
    */
   async getUserChats(ownerId) {
-    return await Chat.find({ ownerId })
-      .sort({ lastActivityAt: -1 });
+    return await Chat.find({ ownerId }).sort({ lastActivityAt: -1 });
   },
 
   /**
@@ -139,11 +161,10 @@ const chatService = {
   async getChatById(chatId, ownerId) {
     const chat = await Chat.findOne({ _id: chatId, ownerId });
     if (!chat) {
-      throw new NotFoundError('Chat not found or unauthorized.');
+      throw new NotFoundError("Chat not found or unauthorized.");
     }
 
-    const messages = await Message.find({ chatId })
-      .sort({ timestamp: 1 });
+    const messages = await Message.find({ chatId }).sort({ timestamp: 1 });
 
     return {
       ...chat.toJSON(),
@@ -158,11 +179,11 @@ const chatService = {
     const chat = await Chat.findOneAndUpdate(
       { _id: chatId, ownerId },
       { $set: { title } },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     );
 
     if (!chat) {
-      throw new NotFoundError('Chat not found or unauthorized.');
+      throw new NotFoundError("Chat not found or unauthorized.");
     }
 
     return chat;
@@ -174,9 +195,9 @@ const chatService = {
   async deleteChat(chatId, ownerId) {
     // Delete chat first to verify ownership
     const result = await Chat.deleteOne({ _id: chatId, ownerId });
-    
+
     if (result.deletedCount === 0) {
-      throw new NotFoundError('Chat not found or unauthorized.');
+      throw new NotFoundError("Chat not found or unauthorized.");
     }
 
     // Cascade delete messages

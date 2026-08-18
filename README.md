@@ -24,13 +24,13 @@
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology |
-|---|---|
-| **Frontend** | React.js (Vite), Tailwind CSS, Zustand, Framer Motion |
-| **Backend** | Node.js, Express.js |
-| **Database** | MongoDB Atlas (Mongoose) |
-| **AI — Embeddings & OCR** | Google Gemini (Gen AI SDK) |
-| **AI — Chat & Generation** | Groq SDK (LLaMA 3.3 70B Versatile) |
+| Layer                      | Technology                                            |
+| -------------------------- | ----------------------------------------------------- |
+| **Frontend**               | React.js (Vite), Tailwind CSS, Zustand, Framer Motion |
+| **Backend**                | Node.js, Express.js                                   |
+| **Database**               | MongoDB Atlas (Mongoose)                              |
+| **AI — Embeddings & OCR**  | Google Gemini (Gen AI SDK)                            |
+| **AI — Chat & Generation** | Groq SDK (LLaMA 3.3 70B Versatile)                    |
 
 ---
 
@@ -60,37 +60,46 @@ SmartPrep-AI/
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js v18+
 - MongoDB Atlas account
 - Google Gemini API key
 - Groq API key
 
 ### 1. Clone the repository
+
 ```bash
 git clone https://github.com/Arvind-Singh00/SmartPrep-AI.git
 cd SmartPrep-AI
 ```
 
 ### 2. Setup Backend
+
 ```bash
 cd backend
 npm install
 ```
 
 Create a `.env` file inside `backend/`:
+
 ```env
+NODE_ENV=development
 PORT=5000
-MONGODB_URL=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
-GEMINI_API_KEY=your_google_gemini_api_key
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/smartprep
+JWT_SECRET=replace_with_a_secure_random_string_at_least_32_chars
+JWT_REFRESH_SECRET=replace_with_a_different_secure_random_string_at_least_32_chars
 GROQ_API_KEY=your_groq_api_key
+GEMINI_API_KEY=your_gemini_api_key
 ```
+
+At least one AI provider key is required for chat generation. The app supports Groq-first with Gemini fallback.
 
 ```bash
 npm run dev
 ```
 
 ### 3. Setup Frontend
+
 ```bash
 # Go back to root
 cd ..
@@ -98,9 +107,15 @@ npm install
 ```
 
 Create a `.env` file in the root:
+
 ```env
-VITE_SERVER_URL=http://localhost:5000
+VITE_USE_MOCK=false
+VITE_API_BASE_URL=/api
+# Optional for deployed backend:
+# VITE_API_ORIGIN=https://your-backend-domain
 ```
+
+Production must use the real backend by default. Set `VITE_USE_MOCK=false` unless you are intentionally testing mock data.
 
 ```bash
 npm run dev
@@ -130,34 +145,36 @@ Answer returned to user ✅
 
 ## 🔌 API Endpoints
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/api/auth/register` | Register user |
-| `POST` | `/api/auth/login` | Login user |
-| `POST` | `/api/documents/upload` | Upload PDF |
-| `GET` | `/api/documents` | Get all documents |
-| `POST` | `/api/chat` | RAG-powered chat with document |
-| `POST` | `/api/quiz/generate` | Generate quiz from document |
+| Method | Endpoint                   | Description                       |
+| ------ | -------------------------- | --------------------------------- |
+| `POST` | `/api/auth/register`       | Register user                     |
+| `POST` | `/api/auth/login`          | Login user                        |
+| `POST` | `/api/documents/upload`    | Upload PDF                        |
+| `GET`  | `/api/documents`           | Get all documents                 |
+| `POST` | `/api/chat`                | RAG-powered chat with document    |
+| `POST` | `/api/quiz/generate`       | Generate quiz from document       |
 | `POST` | `/api/flashcards/generate` | Generate flashcards from document |
-| `GET` | `/api/dashboard` | Get study stats & streak |
+| `GET`  | `/api/dashboard`           | Get study stats & streak          |
 
 ---
 
 ## 🌐 Deployment
 
 ### Backend — Web Service (Render)
-| Setting | Value |
-|---|---|
-| Root Directory | `backend` |
-| Build Command | `npm install` |
-| Start Command | `npm start` |
+
+| Setting        | Value         |
+| -------------- | ------------- |
+| Root Directory | `backend`     |
+| Build Command  | `npm install` |
+| Start Command  | `npm start`   |
 
 ### Frontend — Static Site (Render / Vercel)
-| Setting | Value |
-|---|---|
-| Root Directory | `.` (root) |
-| Build Command | `npm install && npm run build` |
-| Publish Directory | `dist` |
+
+| Setting           | Value                          |
+| ----------------- | ------------------------------ |
+| Root Directory    | `.` (root)                     |
+| Build Command     | `npm install && npm run build` |
+| Publish Directory | `dist`                         |
 
 ---
 

@@ -14,15 +14,15 @@ services:
       # ⚠️ Set the following secret values in Render Dashboard → Environment
       # (never store real secrets in this file)
       - key: MONGODB_URI
-        sync: false   # set manually in Render dashboard
+        sync: false # set manually in Render dashboard
       - key: JWT_SECRET
-        sync: false   # min 32 chars, e.g. use: openssl rand -hex 32
+        sync: false # min 32 chars, e.g. use: openssl rand -hex 32
       - key: JWT_REFRESH_SECRET
-        sync: false   # min 32 chars, different from JWT_SECRET
+        sync: false # min 32 chars, different from JWT_SECRET
       - key: GEMINI_API_KEY
-        sync: false   # from https://aistudio.google.com/app/apikey
+        sync: false # from https://aistudio.google.com/app/apikey
       - key: GROQ_API_KEY
-        sync: false   # from https://console.groq.com/keys
+        sync: false # from https://console.groq.com/keys
       - key: CORS_ORIGIN
         fromService:
           type: web
@@ -47,6 +47,11 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_ORIGIN
+        fromService:
+          type: web
+          name: smartprep-backend
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: VITE_API_BASE_URL
         fromService:
           type: web
           name: smartprep-backend

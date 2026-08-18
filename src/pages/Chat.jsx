@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { useChat } from '../store'
 import Button from '../components/ui/Button'
 import { MessageSkeleton } from '../components/ui/Skeleton'
 import ReactMarkdown from 'react-markdown'
 import { cn } from '../lib/utils'
+
+const normalizeNoteIds = (noteIds = []) => [...new Set((noteIds || []).filter(Boolean).map(String))].sort()
 
 export default function Chat() {
   const { chatId } = useParams()
@@ -19,26 +21,42 @@ export default function Chat() {
   
   const [input, setInput] = useState('')
   const messagesEndRef = useRef(null)
-  const requestedNoteIds = location.state?.noteIds?.filter(Boolean) || []
+  const requestedNoteIds = normalizeNoteIds(location.state?.noteIds)
 
   useEffect(() => {
     fetchSessions()
   }, [fetchSessions])
 
   useEffect(() => {
-    const openRequestedNoteChat = async () => {
-      const session = await newChat(requestedNoteIds)
-      navigate(`/chat/${session.id || session._id}`, { replace: true, state: null })
+    const resolveRequestedNoteChat = async () => {
+      if (chatId) {
+        loadChat(chatId)
+        return
+      }
+
+      if (requestedNoteIds.length > 0) {
+        const requestedKey = requestedNoteIds.join(',')
+        const matchingSession = sessions.find((session) => {
+          const sessionNoteIds = normalizeNoteIds(session.noteIds || [])
+          return sessionNoteIds.join(',') === requestedKey
+        })
+
+        if (matchingSession) {
+          navigate(`/chat/${matchingSession.id || matchingSession._id}`, { replace: true, state: null })
+          return
+        }
+
+        const session = await newChat(requestedNoteIds)
+        navigate(`/chat/${session.id || session._id}`, { replace: true, state: null })
+        return
+      }
+
+      if (sessions.length > 0 && !activeChatId) {
+        navigate(`/chat/${sessions[0].id || sessions[0]._id}`, { replace: true })
+      }
     }
 
-    if (chatId) {
-      loadChat(chatId)
-    } else if (requestedNoteIds.length > 0) {
-      openRequestedNoteChat()
-    } else if (sessions.length > 0 && !activeChatId) {
-      // Default to first chat if none selected
-      navigate(`/chat/${sessions[0].id || sessions[0]._id}`, { replace: true })
-    }
+    resolveRequestedNoteChat()
   }, [chatId, requestedNoteIds.join(','), sessions, loadChat, navigate, activeChatId, newChat])
 
   const scrollToBottom = () => {
@@ -59,11 +77,15 @@ export default function Chat() {
     
     let targetChatId = chatId
     if (!targetChatId) {
-      const session = await newChat(requestedNoteIds)
+      const matchingSession = requestedNoteIds.length > 0
+        ? sessions.find((session) => normalizeNoteIds(session.noteIds || []).join(',') === requestedNoteIds.join(','))
+        : null
+
+      const session = matchingSession || await newChat(requestedNoteIds)
       targetChatId = session.id || session._id
       navigate(`/chat/${targetChatId}`, { replace: true })
     }
-    
+
     const noteIds = activeSession?.noteIds?.length
       ? activeSession.noteIds
       : requestedNoteIds
