@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useChat, useNotes } from '../store'
+import { useChat } from '../store'
 import Button from '../components/ui/Button'
 import { MessageSkeleton } from '../components/ui/Skeleton'
 import ReactMarkdown from 'react-markdown'
@@ -10,29 +10,36 @@ import { cn } from '../lib/utils'
 export default function Chat() {
   const { chatId } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const { 
     sessions, fetchSessions, loadChat, getActiveMessages, 
     sendMessage, isSending, isStreaming, newChat, activeChatId,
     deleteChat
   } = useChat()
-  const { notes, fetchNotes } = useNotes()
   
   const [input, setInput] = useState('')
   const messagesEndRef = useRef(null)
+  const requestedNoteIds = location.state?.noteIds?.filter(Boolean) || []
 
   useEffect(() => {
     fetchSessions()
-    fetchNotes()
-  }, [fetchSessions, fetchNotes])
+  }, [fetchSessions])
 
   useEffect(() => {
+    const openRequestedNoteChat = async () => {
+      const session = await newChat(requestedNoteIds)
+      navigate(`/chat/${session.id || session._id}`, { replace: true, state: null })
+    }
+
     if (chatId) {
       loadChat(chatId)
+    } else if (requestedNoteIds.length > 0) {
+      openRequestedNoteChat()
     } else if (sessions.length > 0 && !activeChatId) {
       // Default to first chat if none selected
-      navigate(`/chat/${sessions[0].id}`, { replace: true })
+      navigate(`/chat/${sessions[0].id || sessions[0]._id}`, { replace: true })
     }
-  }, [chatId, sessions, loadChat, navigate, activeChatId])
+  }, [chatId, requestedNoteIds.join(','), sessions, loadChat, navigate, activeChatId, newChat])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -42,6 +49,8 @@ export default function Chat() {
     scrollToBottom()
   }, [getActiveMessages(), isStreaming])
 
+  const activeSession = sessions.find(s => (s.id || s._id) === chatId)
+
   const handleSend = async (e) => {
     e.preventDefault()
     if (!input.trim() || isSending) return
@@ -50,18 +59,19 @@ export default function Chat() {
     
     let targetChatId = chatId
     if (!targetChatId) {
-      const session = await newChat()
-      targetChatId = session.id
+      const session = await newChat(requestedNoteIds)
+      targetChatId = session.id || session._id
       navigate(`/chat/${targetChatId}`, { replace: true })
     }
     
-    // Send all real note IDs so the RAG engine can search across all uploaded notes
-    const noteIds = notes.map(n => n.id || n._id).filter(Boolean)
+    const noteIds = activeSession?.noteIds?.length
+      ? activeSession.noteIds
+      : requestedNoteIds
+
     await sendMessage(targetChatId, text, noteIds)
   }
 
   const messages = getActiveMessages()
-  const activeSession = sessions.find(s => s.id === chatId)
 
   return (
     <div className="flex h-[calc(100vh-4rem)]">
